@@ -1,128 +1,89 @@
-# 🏥 HospitalCare – Modern Hospital Management Frontend
+# NexusCare — Hospital Management System
 
-A clean, modern, and visually appealing **Hospital Management System frontend** built using **HTML, CSS, and Bootstrap**.
-This project transforms a basic template into a **professional healthcare web interface** with structured pages, interactive UI, and smooth user experience.
+A futuristic, fully-animated hospital management platform: React on the front end, Node.js/Express/MongoDB on the back end. All visuals — the 3D hospital model, DNA helix, animated charts, and payment card — are generated in code with React Three Fiber and SVG, so there are no external image or model files to source.
 
----
-
-## 🚀 Live Features
-
-✨ **Modern UI Design**
-
-* Gradient backgrounds & glassmorphism cards
-* Responsive layout for all devices
-* Smooth hover animations
-
-🏠 **Home Page**
-
-* Hero section with strong visual appeal
-* Service highlights (Emergency, Doctors, Equipment)
-* Easy navigation to all sections
-
-🏥 **Departments Page**
-
-* Card-based layout
-* Clean and organized department listing
-* Quick navigation to doctors
-
-👨‍⚕️ **Doctors Page**
-
-* Doctor profile cards
-* Specialization & experience details
-* “Book Appointment” action for each doctor
-
-📅 **Appointment Page**
-
-* Styled booking form
-* Input validation
-* Success confirmation interaction
-
----
-
-## 🛠️ Tech Stack
-
-* **HTML5**
-* **CSS3**
-* **Bootstrap**
-* **JavaScript (Vanilla)**
-
----
-
-## 📁 Project Structure
+## What's inside
 
 ```
-Hospital_Management_System/
-│
-├── index.html                # Home Page
-├── menu-categories.html      # Departments Page
-├── single-category.html      # Doctors Page
-├── new.html                  # Appointment Page
-│
-├── css/
-│   ├── bootstrap.min.css
-│   └── styles.css
-│
-├── js/
-│   ├── bootstrap.min.js
-│   └── script.js
-│
-├── images/
-│   ├── hospital/
-│   ├── doctors/
-│   └── departments/
-│
-└── README.md
+hms/
+├── frontend/                  React + Vite + Tailwind + Framer Motion + React Three Fiber
+│   └── src/
+│       ├── components/        Navbar, Footer, cards, calendar, modals
+│       │   └── three/         3D scenes: hospital hero, DNA helix, 3D chart, payment card
+│       ├── pages/              Landing, Login, Signup, Dashboards, Appointments,
+│       │                      Patient Records, Billing, Doctors, Reports, Settings
+│       ├── context/            Auth + theme state
+│       └── lib/                Demo data used by the UI
+└── backend/                   Node.js + Express + Mongoose
+    ├── models/                User, Doctor, Patient, Appointment, Billing
+    ├── controllers/, routes/  REST API for auth, doctors, patients, appointments, billing
+    ├── middleware/            JWT auth guard, role authorization, error handling
+    └── seed.js                Populates MongoDB with demo doctors/patients/invoices
 ```
 
----
+## Design direction
 
-## ▶️ How to Run
+- **Palette** — near-black void background (`#060B14`) with a bio-teal (`#22E5C8`) and violet (`#7C6CFF`) accent pair, evoking monitoring displays and bioluminescence rather than a generic SaaS look.
+- **Type** — Space Grotesk for display headings, Inter for body copy, JetBrains Mono for data labels.
+- **Motion** — Framer Motion handles page transitions, card reveals, and the flip/drawer interactions; the 3D scenes run on React Three Fiber (Three.js) built entirely from primitive geometry, so nothing needs to be downloaded or licensed.
 
-1. Clone or download the project
-2. Open in **VS Code**
-3. Right-click `index.html`
-4. Click **"Open with Live Server"**
+## Running the frontend
 
-OR simply open `index.html` in your browser.
+```bash
+cd frontend
+npm install
+npm start        # alias not defined — use:
+npm run dev
+```
 
----
+The app runs at `http://localhost:5173`. **The frontend works fully on its own** — authentication and all dashboards use an in-memory demo mode (any email/password signs you in), so you can explore the whole UI without standing up the backend or a database.
 
-## 🎯 Key Highlights
+## Running the backend
 
-* Clean separation of pages (Home, Departments, Doctors, Appointment)
-* Reusable UI components (cards, buttons, layout)
-* Improved user experience with modern design principles
-* Beginner-friendly and easy to extend
+```bash
+cd backend
+npm install
+cp .env.example .env     # then edit MONGO_URI / JWT_SECRET if needed
+npm run seed              # populates MongoDB with demo doctors, patients, appointments, invoices
+node server.js            # or: npm run dev (requires nodemon, already in devDependencies)
+```
 
----
+The API runs at `http://localhost:5000`, and the frontend's Vite dev server proxies `/api/*` requests to it (see `frontend/vite.config.js`). You'll need a MongoDB instance — either local (`mongod`) or a free MongoDB Atlas cluster; put its connection string in `backend/.env` as `MONGO_URI`.
 
-## 🔥 Future Enhancements
+After seeding, you can log in against the real API with:
+- **Admin:** `admin@nexuscare.dev` / `password123`
 
-* Add backend (Node.js / Express / MongoDB)
-* Store appointment data in database
-* User authentication (Login/Signup)
-* Admin dashboard for managing doctors & appointments
-* Search & filter functionality
+### API overview
 
----
+| Method | Route | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Create an account (patient/doctor/admin) |
+| POST | `/api/auth/login` | Log in, returns a JWT |
+| GET | `/api/auth/me` | Current user (requires `Authorization: Bearer <token>`) |
+| GET | `/api/doctors` | List/search doctors |
+| GET/POST/PUT/DELETE | `/api/patients` | Patient records CRUD |
+| POST | `/api/patients/:id/history` | Append a note to a patient's history |
+| GET/POST/PUT/DELETE | `/api/appointments` | Appointment booking, with double-booking prevention |
+| GET | `/api/billing`, `/api/billing/summary` | Invoices and revenue summary |
+| PUT | `/api/billing/:id/pay` | Mark an invoice paid |
 
-## 👨‍💻 Author
+### Wiring the frontend to the live API
 
-**Hemanth B G**
+The frontend currently ships with `AuthContext` resolving logins locally (demo mode) so the UI is explorable with zero setup. To point it at the real backend, swap the `login`/`signup` functions in `frontend/src/context/AuthContext.jsx` for `fetch('/api/auth/login', ...)` calls, and replace the arrays in `frontend/src/lib/mockData.js` with `fetch` calls to the corresponding endpoints above. The API shapes match the mock data field names closely to make this a mechanical change.
 
-* Information Science Engineering Student
-* Passionate about Web Development & Full Stack Projects
+## Pages included
 
----
+1. **Landing** — animated 3D hospital hero, feature grid, specialist preview, CTA
+2. **Login / Signup** — DNA-helix background, glowing input fields, role selector
+3. **Dashboard** — separate Admin, Doctor, and Patient views with live-feeling charts
+4. **Appointments** — interactive weekly calendar with animated slot booking
+5. **Patient Records** — searchable grid with a 3D "drawer-open" record modal
+6. **Billing & Payments** — animated 3D credit card, invoice table, PDF/Excel export
+7. **Doctor Directory** — filterable grid with flip-card hover reveal
+8. **Reports & Analytics** — 3D animated bar chart, pie breakdown, PDF/Excel export
+9. **Settings** — avatar accent picker, dark/light toggle, notification preferences
 
-## ⭐ Final Note
+## Notes
 
-This project is designed to showcase:
-
-* Frontend development skills
-* UI/UX design understanding
-* Ability to transform and improve existing systems
-
-If you like this project, feel free to ⭐ the repository!
-
----
+- This is a demo-data build meant to be a complete, runnable starting point — swap the mock arrays and demo auth for real API calls as described above to go to production.
+- All 3D content is procedural (Three.js primitives), so there's nothing to license or re-host.
