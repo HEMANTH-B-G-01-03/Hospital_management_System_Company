@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-void text-ink font-body antialiased;
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(124,108,255,0.10), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(34,229,200,0.12), transparent 45%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(34, 229, 200, 0.3);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1220;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B2C42;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #22E5C8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(16px);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #6FFFE9, #7C6CFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #22E5C8;
+  outline-offset: 3px;
+}
+
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--noise, none);
+  z-index: 60;
+}
