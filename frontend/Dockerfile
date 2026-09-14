@@ -29,7 +29,7 @@ RUN npm ci
 
 COPY . .
 
-RUN NODE_OPTIONS="--max-old-space-size=768" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
 FROM nginx:alpine
 
