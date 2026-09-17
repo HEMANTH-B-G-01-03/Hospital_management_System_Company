@@ -17,6 +17,8 @@ import Reports from './pages/Reports.jsx'
 import Settings from './pages/Settings.jsx'
 import NotFound from './pages/NotFound.jsx'
 
+import AddDoctor from './pages/AddDoctor.jsx'
+
 function PageTransition({ children }) {
   return (
     <motion.div
@@ -52,6 +54,31 @@ export default function App() {
             <Route path="/settings" element={<ProtectedRoute><PageTransition><Settings /></PageTransition></ProtectedRoute>} />
 
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+
+            <Route
+  path="/doctors/add"
+  element={
+    <ProtectedRoute>
+      <PageTransition>
+        <AddDoctor />
+      </PageTransition>
+    </ProtectedRoute>
+  }
+/>
+
+
+<Route path="/doctors" element={<PageTransition><Doctors /></PageTransition>} />
+
+<Route
+  path="/doctors/add"
+  element={
+    <ProtectedRoute>
+      <PageTransition>
+        <AddDoctor />
+      </PageTransition>
+    </ProtectedRoute>
+  }
+/>
           </Routes>
         </AnimatePresence>
       </main>
