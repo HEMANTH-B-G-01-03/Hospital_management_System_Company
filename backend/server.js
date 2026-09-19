@@ -11,7 +11,8 @@ const doctorRoutes = require('./routes/doctors')
 const patientRoutes = require('./routes/patients')
 const appointmentRoutes = require('./routes/appointments')
 const billingRoutes = require('./routes/billing')
-
+const reportRoutes = require('./routes/reports')
+const dashboardRoutes = require('./routes/dashboard')
 const app = express()
 
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', credentials: true }))
@@ -27,8 +28,11 @@ app.use('/api/patients', patientRoutes)
 app.use('/api/appointments', appointmentRoutes)
 app.use('/api/billing', billingRoutes)
 
+app.use('/api/reports', reportRoutes)
+app.use('/api/dashboard', dashboardRoutes)
 app.use(notFound)
 app.use(errorHandler)
+
 
 const PORT = process.env.PORT || 5000
 
