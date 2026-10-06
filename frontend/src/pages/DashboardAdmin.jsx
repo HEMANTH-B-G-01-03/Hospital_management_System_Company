@@ -193,7 +193,7 @@ export default function DashboardAdmin() {
           accent="pulse"
         />
 
-        <StatCard
+        {/* <StatCard
           icon={BedDouble}
           label="Bed occupancy"
           value={dashboard.bedOccupancy ?? 'N/A'}
@@ -203,7 +203,7 @@ export default function DashboardAdmin() {
               : undefined
           }
           accent="rose"
-        />
+        /> */}
 
         <StatCard
           icon={Wallet}
