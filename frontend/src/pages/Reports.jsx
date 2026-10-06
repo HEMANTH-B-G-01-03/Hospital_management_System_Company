@@ -357,14 +357,20 @@ export default function Reports() {
 
                   </Pie>
 
-                  <Tooltip
-                    contentStyle={{
-                      background: '#0D1526',
-                      border:
-                        '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: 12
-                    }}
-                  />
+                 <Tooltip
+  contentStyle={{
+    background: '#0D1526',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    color: '#FFFFFF'
+  }}
+  itemStyle={{
+    color: '#FFFFFF'
+  }}
+  labelStyle={{
+    color: '#FFFFFF'
+  }}
+/>
 
                   <Legend
                     wrapperStyle={{
