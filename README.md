@@ -87,3 +87,5 @@ The frontend currently ships with `AuthContext` resolving logins locally (demo m
 
 - This is a demo-data build meant to be a complete, runnable starting point — swap the mock arrays and demo auth for real API calls as described above to go to production.
 - All 3D content is procedural (Three.js primitives), so there's nothing to license or re-host.
+
+## Created by - HEMANTH B G
