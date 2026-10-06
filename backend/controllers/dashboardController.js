@@ -188,6 +188,7 @@
 // }
 
 
+
 const asyncHandler = require('express-async-handler')
 const Patient = require('../models/Patient')
 const Doctor = require('../models/Doctor')
@@ -204,55 +205,10 @@ const getDashboard = asyncHandler(async (req, res) => {
     available: true
   })
 
-  // 3. Monthly revenue
+  // Current date
   const now = new Date()
 
-  const startOfMonth = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1
-  )
-
-  const startOfNextMonth = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    1
-  )
-
-  const monthlyRevenueResult = await Billing.aggregate([
-    {
-      $match: {
-        status: 'Paid',
-        $or: [
-          {
-            paidAt: {
-              $gte: startOfMonth,
-              $lt: startOfNextMonth
-            }
-          },
-          {
-            paidAt: null,
-            createdAt: {
-              $gte: startOfMonth,
-              $lt: startOfNextMonth
-            }
-          }
-        ]
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        total: {
-          $sum: '$amount'
-        }
-      }
-    }
-  ])
-
-  const monthlyRevenue = monthlyRevenueResult[0]?.total || 0
-
-  // 4. Revenue for last 7 months
+  // 3. Revenue for last 7 months
   const sevenMonthsAgo = new Date(
     now.getFullYear(),
     now.getMonth() - 6,
@@ -289,16 +245,10 @@ const getDashboard = asyncHandler(async (req, res) => {
     {
       $group: {
         _id: {
-          year: {
-            $year: '$date'
-          },
-          month: {
-            $month: '$date'
-          }
+          year: { $year: '$date' },
+          month: { $month: '$date' }
         },
-        revenue: {
-          $sum: '$amount'
-        }
+        revenue: { $sum: '$amount' }
       }
     },
     {
@@ -330,6 +280,26 @@ const getDashboard = asyncHandler(async (req, res) => {
     expenses: 0
   }))
 
+  // 4. Monthly revenue
+  // Prefer the current month's revenue.
+  // If current month has no revenue, use the latest month
+  // that has paid revenue so the dashboard does not show 0
+  // when historical revenue is available.
+
+  const currentMonthRevenue = revenueData.find(
+    (item) =>
+      item._id.year === now.getFullYear() &&
+      item._id.month === now.getMonth() + 1
+  )
+
+  const latestRevenue =
+    revenueData.length > 0
+      ? revenueData[revenueData.length - 1].revenue
+      : 0
+
+  const monthlyRevenue =
+    currentMonthRevenue?.revenue ?? latestRevenue
+
   // 5. Admissions / appointments by department
   const departmentData = await Appointment.aggregate([
     {
@@ -353,9 +323,7 @@ const getDashboard = asyncHandler(async (req, res) => {
     {
       $group: {
         _id: '$doctorData.specialty',
-        value: {
-          $sum: 1
-        }
+        value: { $sum: 1 }
       }
     },
     {
@@ -371,6 +339,8 @@ const getDashboard = asyncHandler(async (req, res) => {
   }))
 
   // 6. Recent activity
+  // Use appointment date + time because some manually inserted
+  // appointments may not have a valid createdAt value.
   const recentAppointments = await Appointment.find()
     .populate('doctor', 'name')
     .populate('patient', 'name')
@@ -378,30 +348,30 @@ const getDashboard = asyncHandler(async (req, res) => {
     .limit(4)
 
   const recentActivity = recentAppointments.map((appointment) => {
-    // Use the appointment date from the database.
-    // This avoids Invalid Date caused by missing createdAt
-    // in appointments that were inserted manually.
-    const appointmentDate = new Date(appointment.date)
+    let activityDate = null
 
-    // Appointment time is stored separately as HH:mm
-    const [hours, minutes] = String(
-      appointment.time || '00:00'
-    )
-      .split(':')
-      .map(Number)
+    if (appointment.date) {
+      const datePart = new Date(appointment.date)
 
-    // Add the appointment time to the appointment date
-    if (
-      !Number.isNaN(hours) &&
-      !Number.isNaN(minutes) &&
-      !Number.isNaN(appointmentDate.getTime())
-    ) {
-      appointmentDate.setHours(hours, minutes, 0, 0)
+      if (!Number.isNaN(datePart.getTime())) {
+        const year = datePart.getFullYear()
+        const month = String(datePart.getMonth() + 1).padStart(2, '0')
+        const day = String(datePart.getDate()).padStart(2, '0')
+
+        const timePart = appointment.time || '00:00'
+
+        const combinedDate = new Date(
+          `${year}-${month}-${day}T${timePart}:00`
+        )
+
+        if (!Number.isNaN(combinedDate.getTime())) {
+          activityDate = combinedDate
+        }
+      }
     }
 
-    // Format the date safely
-    const formattedTime = !Number.isNaN(appointmentDate.getTime())
-      ? appointmentDate.toLocaleString('en-IN', {
+    const formattedTime = activityDate
+      ? activityDate.toLocaleString('en-IN', {
           day: '2-digit',
           month: 'short',
           year: 'numeric',
@@ -412,12 +382,13 @@ const getDashboard = asyncHandler(async (req, res) => {
       : 'Date unavailable'
 
     return {
-      text: `${appointment.doctor?.name || 'Doctor'} has an appointment with ${appointment.patient?.name || 'patient'}`,
+      text: `${appointment.doctor?.name || 'Doctor'} has an appointment with ${
+        appointment.patient?.name || 'patient'
+      }`,
       time: formattedTime
     }
   })
 
-  // 7. Send dashboard response
   res.json({
     activePatients,
     onDutySpecialists,
