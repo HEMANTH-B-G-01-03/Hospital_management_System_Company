@@ -381,9 +381,191 @@
 
 
 
+// import React, { useEffect, useState } from 'react'
+// import { motion } from 'framer-motion'
+// import { Download } from 'lucide-react'
+// import GlowCard from '../components/GlowCard.jsx'
+// import { useAuth } from '../context/AuthContext.jsx'
+
+// const API_URL = 'http://localhost:5000/api'
+
+// const statusStyle = {
+//   Paid: 'bg-bio/15 text-bio',
+//   Pending: 'bg-vital-amber/15 text-vital-amber',
+//   Overdue: 'bg-vital-rose/15 text-vital-rose'
+// }
+
+// function currency(n) {
+//   return new Intl.NumberFormat('en-IN', {
+//     style: 'currency',
+//     currency: 'INR',
+//     maximumFractionDigits: 0
+//   }).format(n)
+// }
+
+// export default function Billing() {
+//   const { user } = useAuth()
+
+//   const [invoices, setInvoices] = useState([])
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState('')
+
+//   useEffect(() => {
+//     const fetchInvoices = async () => {
+//       try {
+//         setLoading(true)
+//         setError('')
+
+//         if (!user?.token) {
+//           throw new Error('You must be logged in to view billing information.')
+//         }
+
+//         const response = await fetch(`${API_URL}/billing`, {
+//           headers: {
+//             Authorization: `Bearer ${user.token}`
+//           }
+//         })
+
+//         const data = await response.json()
+
+//         if (!response.ok) {
+//           throw new Error(data.message || 'Failed to fetch invoices')
+//         }
+
+//         const formattedInvoices = data.map((invoice) => ({
+//           id: invoice.invoiceNumber,
+//           patient: invoice.patient?.name || 'Unknown patient',
+//           service: invoice.service,
+//           date: invoice.dueDate
+//             ? new Date(invoice.dueDate).toLocaleDateString(undefined, {
+//                 month: 'short',
+//                 day: 'numeric',
+//                 year: 'numeric'
+//               })
+//             : 'No due date',
+//           amount: invoice.amount,
+//           status: invoice.status
+//         }))
+
+//         setInvoices(formattedInvoices)
+//       } catch (err) {
+//         console.error('Error fetching invoices:', err)
+//         setError(err.message || 'Unable to load billing information.')
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+
+//     fetchInvoices()
+//   }, [user])
+
+//   return (
+//     <div className="mx-auto max-w-7xl px-6 py-10">
+//       <GlowCard>
+//         <div className="flex items-center justify-between gap-4">
+//           <h1 className="font-display text-xl font-semibold text-ink">
+//             Invoices
+//           </h1>
+
+//           <button
+//             className="focus-ring flex shrink-0 items-center gap-1.5 rounded-full bg-bio px-4 py-2.5 text-sm font-medium text-void shadow-glow transition hover:brightness-110"
+//           >
+//             <Download size={14} />
+//             Export
+//           </button>
+//         </div>
+
+//         {error && (
+//           <p className="mt-6 text-sm text-vital-rose">
+//             {error}
+//           </p>
+//         )}
+
+//         {loading && (
+//           <p className="mt-6 text-center text-sm text-ink-muted">
+//             Loading invoices...
+//           </p>
+//         )}
+
+//         {!loading && !error && (
+//           <div className="mt-5 overflow-x-auto">
+//             <table className="w-full min-w-[640px] text-left text-sm">
+//               <thead>
+//                 <tr className="text-xs text-ink-muted">
+//                   <th className="pb-3 font-normal">Invoice</th>
+//                   <th className="pb-3 font-normal">Patient</th>
+//                   <th className="pb-3 font-normal">Service</th>
+//                   <th className="pb-3 font-normal">Date</th>
+//                   <th className="pb-3 font-normal">Amount</th>
+//                   <th className="pb-3 font-normal">Status</th>
+//                 </tr>
+//               </thead>
+
+//               <tbody className="divide-y divide-white/5">
+//                 {invoices.map((invoice, index) => (
+//                   <motion.tr
+//                     key={invoice.id}
+//                     initial={{ opacity: 0 }}
+//                     animate={{ opacity: 1 }}
+//                     transition={{ delay: index * 0.04 }}
+//                   >
+//                     <td className="py-3 font-mono text-xs text-ink-muted">
+//                       {invoice.id}
+//                     </td>
+
+//                     <td className="py-3 text-ink">
+//                       {invoice.patient}
+//                     </td>
+
+//                     <td className="py-3 text-ink-muted">
+//                       {invoice.service}
+//                     </td>
+
+//                     <td className="py-3 text-ink-muted">
+//                       {invoice.date}
+//                     </td>
+
+//                     <td className="py-3 text-ink">
+//                       {currency(invoice.amount)}
+//                     </td>
+
+//                     <td className="py-3">
+//                       <span
+//                         className={`rounded-full px-2.5 py-1 text-xs ${
+//                           statusStyle[invoice.status] ||
+//                           'bg-white/5 text-ink-muted'
+//                         }`}
+//                       >
+//                         {invoice.status}
+//                       </span>
+//                     </td>
+//                   </motion.tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+//         )}
+
+//         {!loading && !error && invoices.length === 0 && (
+//           <p className="mt-6 text-center text-sm text-ink-muted">
+//             No invoices found.
+//           </p>
+//         )}
+//       </GlowCard>
+//     </div>
+//   )
+// }
+
+
+
+
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Download } from 'lucide-react'
+import { Download, FileSpreadsheet, FileText } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
+
 import GlowCard from '../components/GlowCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -409,7 +591,9 @@ export default function Billing() {
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showExportOptions, setShowExportOptions] = useState(false)
 
+  // Fetch invoices from backend
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
@@ -417,7 +601,9 @@ export default function Billing() {
         setError('')
 
         if (!user?.token) {
-          throw new Error('You must be logged in to view billing information.')
+          throw new Error(
+            'You must be logged in to view billing information.'
+          )
         }
 
         const response = await fetch(`${API_URL}/billing`, {
@@ -450,7 +636,9 @@ export default function Billing() {
         setInvoices(formattedInvoices)
       } catch (err) {
         console.error('Error fetching invoices:', err)
-        setError(err.message || 'Unable to load billing information.')
+        setError(
+          err.message || 'Unable to load billing information.'
+        )
       } finally {
         setLoading(false)
       }
@@ -459,37 +647,183 @@ export default function Billing() {
     fetchInvoices()
   }, [user])
 
+  // Export invoices as PDF
+  const exportPDF = () => {
+    if (invoices.length === 0) {
+      alert('No invoices available to export.')
+      return
+    }
+
+    const doc = new jsPDF()
+
+    doc.setFontSize(18)
+    doc.text('NexusCare - Invoice Report', 14, 18)
+
+    doc.setFontSize(10)
+    doc.text(
+      `Generated: ${new Date().toLocaleDateString()}`,
+      14,
+      26
+    )
+
+    autoTable(doc, {
+      startY: 32,
+      head: [[
+        'Invoice',
+        'Patient',
+        'Service',
+        'Date',
+        'Amount',
+        'Status'
+      ]],
+      body: invoices.map((invoice) => [
+        invoice.id,
+        invoice.patient,
+        invoice.service,
+        invoice.date,
+        `Rs. ${invoice.amount}`,
+        invoice.status
+      ]),
+      theme: 'grid',
+      styles: {
+        fontSize: 8,
+        cellPadding: 3
+      },
+      headStyles: {
+        fillColor: [15, 40, 55]
+      }
+    })
+
+    doc.save('NexusCare_Invoices.pdf')
+  }
+
+  // Export invoices as Excel
+  const exportExcel = () => {
+    if (invoices.length === 0) {
+      alert('No invoices available to export.')
+      return
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(
+      invoices.map((invoice) => ({
+        Invoice: invoice.id,
+        Patient: invoice.patient,
+        Service: invoice.service,
+        Date: invoice.date,
+        Amount: invoice.amount,
+        Status: invoice.status
+      }))
+    )
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 30 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 14 }
+    ]
+
+    const workbook = XLSX.utils.book_new()
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      'Invoices'
+    )
+
+    XLSX.writeFile(
+      workbook,
+      'NexusCare_Invoices.xlsx'
+    )
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
+
       <GlowCard>
+
+        {/* Invoice heading and Export button */}
         <div className="flex items-center justify-between gap-4">
+
           <h1 className="font-display text-xl font-semibold text-ink">
             Invoices
           </h1>
 
-          <button
-            className="focus-ring flex shrink-0 items-center gap-1.5 rounded-full bg-bio px-4 py-2.5 text-sm font-medium text-void shadow-glow transition hover:brightness-110"
-          >
-            <Download size={14} />
-            Export
-          </button>
+          <div className="relative">
+
+            <button
+              onClick={() =>
+                setShowExportOptions((previous) => !previous)
+              }
+              disabled={loading || invoices.length === 0}
+              className="focus-ring flex shrink-0 items-center gap-1.5 rounded-full bg-bio px-4 py-2.5 text-sm font-medium text-void shadow-glow transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download size={14} />
+              Export
+            </button>
+
+            {/* Export dropdown */}
+            {showExportOptions && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-xl border border-white/10 bg-[#111c2b] shadow-xl">
+
+                <button
+                  onClick={() => {
+                    exportPDF()
+                    setShowExportOptions(false)
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-ink transition hover:bg-white/10"
+                >
+                  <FileText
+                    size={16}
+                    className="text-vital-rose"
+                  />
+                  Download PDF
+                </button>
+
+                <div className="h-px bg-white/10" />
+
+                <button
+                  onClick={() => {
+                    exportExcel()
+                    setShowExportOptions(false)
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-ink transition hover:bg-white/10"
+                >
+                  <FileSpreadsheet
+                    size={16}
+                    className="text-bio"
+                  />
+                  Download Excel
+                </button>
+
+              </div>
+            )}
+
+          </div>
         </div>
 
+        {/* Error message */}
         {error && (
           <p className="mt-6 text-sm text-vital-rose">
             {error}
           </p>
         )}
 
+        {/* Loading */}
         {loading && (
           <p className="mt-6 text-center text-sm text-ink-muted">
             Loading invoices...
           </p>
         )}
 
+        {/* Invoice table */}
         {!loading && !error && (
           <div className="mt-5 overflow-x-auto">
+
             <table className="w-full min-w-[640px] text-left text-sm">
+
               <thead>
                 <tr className="text-xs text-ink-muted">
                   <th className="pb-3 font-normal">Invoice</th>
@@ -502,6 +836,7 @@ export default function Billing() {
               </thead>
 
               <tbody className="divide-y divide-white/5">
+
                 {invoices.map((invoice, index) => (
                   <motion.tr
                     key={invoice.id}
@@ -509,6 +844,7 @@ export default function Billing() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.04 }}
                   >
+
                     <td className="py-3 font-mono text-xs text-ink-muted">
                       {invoice.id}
                     </td>
@@ -539,19 +875,26 @@ export default function Billing() {
                         {invoice.status}
                       </span>
                     </td>
+
                   </motion.tr>
                 ))}
+
               </tbody>
+
             </table>
+
           </div>
         )}
 
+        {/* Empty state */}
         {!loading && !error && invoices.length === 0 && (
           <p className="mt-6 text-center text-sm text-ink-muted">
             No invoices found.
           </p>
         )}
+
       </GlowCard>
+
     </div>
   )
 }
